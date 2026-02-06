@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Камень, Ножницы, Бумага</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .game-info {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+        }
+
+        .score {
+            background: rgba(255,255,255,0.15);
+            padding: 15px;
+            border-radius: 10px;
+            flex: 1;
+            margin: 0 10px;
+        }
+
+        .choices {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .choice-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .choice-btn:hover {
+            transform: scale(1.1);
+            background: rgba(255,255,255,0.3);
+        }
+
+        .result {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            min-height: 150px;
+            backdrop-filter: blur(10px);
+        }
+
+        .choices-display {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        .choice-display {
+            text-align: center;
+        }
+
+        .choice-icon {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        .result-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.15);
+        }
+
+        .play-btn {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255,107,107,0.4);
+        }
+
+        @media (max-width: 600px) {
+            .choices {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .choice-btn {
+                width: 80px;
+                height: 80px;
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✊ ✌️ ✋</h1>
+            <h1>Камень, Ножницы, Бумага</h1>
+        </div>
+
+        <div class="game-info">
+            <p>Выберите ваш ход и попробуйте обыграть бота!</p>
+        </div>
+
+        <div class="score-board">
+            <div class="score">
+                <div>Вы</div>
+                <div id="user-score">0</div>
+            </div>
+            <div class="score">
+                <div>Ничьи</div>
+                <div id="draw-score">0</div>
+            </div>
+            <div class="score">
+                <div>Бот</div>
+                <div id="bot-score">0</div>
+            </div>
+        </div>
+
+        <div class="choices">
+            <button class="choice-btn" data-choice="rock" title="Камень">
+                <i class="fas fa-hand-rock"></i>
+            </button>
+            <button class="choice-btn" data-choice="scissors" title="Ножницы">
+                <i class="fas fa-hand-scissors"></i>
+            </button>
+            <button class="choice-btn" data-choice="paper" title="Бумага">
+                <i class="fas fa-hand-paper"></i>
+            </button>
+        </div>
+
+        <div class="result" id="result-container">
+            <div id="result-text">Выберите ваш ход!</div>
+            
+            <div class="choices-display" id="choices-display" style="display: none;">
+                <div class="choice-display">
+                    <div class="choice-icon" id="user-choice-icon">✊</div>
+                    <div>Вы</div>
+                </div>
+                <div class="choice-display">
+                    <div class="choice-icon" id="bot-choice-icon">🤖</div>
+                    <div>Бот</div>
+                </div>
+            </div>
+            
+            <div class="result-text" id="final-result" style="display: none;"></div>
+            
+            <button class="play-btn" onclick="resetGame()" style="display: none;">
+                Играть снова
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+        
+        // Показать кнопку "Назад" в Telegram
+        tg.BackButton.show();
+        tg.BackButton.onClick(() => {
+            tg.close();
+        });
+        
+        // Инициализация игры
+        let userScore = 0;
+        let botScore = 0;
+        let drawScore = 0;
+        
+        const emojis = {
+            rock: '✊',
+            scissors: '✌️',
+            paper: '✋'
+        };
+        
+        // Обработчики выбора
+        document.querySelectorAll('.choice-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const userChoice = e.currentTarget.dataset.choice;
+                playGame(userChoice);
+            });
+        });
+        
+        function playGame(userChoice) {
+            // Выбор бота
+            const choices = ['rock', 'scissors', 'paper'];
+            const botChoice = choices[Math.floor(Math.random() * choices.length)];
+            
+            // Отображение выбора
+            document.getElementById('user-choice-icon').textContent = emojis[userChoice];
+            document.getElementById('bot-choice-icon').textContent = emojis[botChoice];
+            
+            // Определение победителя
+            const result = determineWinner(userChoice, botChoice);
+            
+            // Обновление счета
+            if (result === 'win') {
+                userScore++;
+                document.getElementById('user-score').textContent = userScore;
+            } else if (result === 'lose') {
+                botScore++;
+                document.getElementById('bot-score').textContent = botScore;
+            } else {
+                drawScore++;
+                document.getElementById('draw-score').textContent = drawScore;
+            }
+            
+            // Отображение результатов
+            document.getElementById('result-text').textContent = 'Результат игры:';
+            document.getElementById('choices-display').style.display = 'flex';
+            
+            let resultMessage = '';
+            if (result === 'win') {
+                resultMessage = '🎉 Вы победили!';
+                document.getElementById('final-result').style.color = '#4ade80';
+            } else if (result === 'lose') {
+                resultMessage = '🤖 Бот победил!';
+                document.getElementById('final-result').style.color = '#f87171';
+            } else {
+                resultMessage = '🤝 Ничья!';
+                document.getElementById('final-result').style.color = '#fbbf24';
+            }
+            
+            document.getElementById('final-result').textContent = resultMessage;
+            document.getElementById('final-result').style.display = 'block';
+            
+            document.querySelector('.play-btn').style.display = 'inline-block';
+            
+            // Можно отправить результат в Telegram
+            if (tg.initDataUnsafe?.user) {
+                tg.sendData(JSON.stringify({
+                    action: 'game_result',
+                    user_id: tg.initDataUnsafe.user.id,
+                    result: result,
+                    user_choice: userChoice,
+                    bot_choice: botChoice
+                }));
+            }
+        }
+        
+        function determineWinner(user, bot) {
+            if (user === bot) return 'draw';
+            
+            const winningCombinations = {
+                rock: 'scissors',
+                scissors: 'paper',
+                paper: 'rock'
+            };
+            
+            return winningCombinations[user] === bot ? 'win' : 'lose';
+        }
+        
+        function resetGame() {
+            document.getElementById('result-text').textContent = 'Выберите ваш ход!';
+            document.getElementById('choices-display').style.display = 'none';
+            document.getElementById('final-result').style.display = 'none';
+            document.querySelector('.play-btn').style.display = 'none';
+        }
+        
+        // Отправить данные в бота при закрытии
+        tg.onEvent('viewportChanged', () => {
+            if (tg.isClosingConfirmationEnabled) {
+                const gameData = {
+                    scores: {
+                        user: userScore,
+                        bot: botScore,
+                        draw: drawScore
+                    }
+                };
+                tg.sendData(JSON.stringify(gameData));
+            }
+        });
+    </script>
+</body>
+</html>
